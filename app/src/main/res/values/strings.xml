@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">MyReminders</string>
+    <string name="add_reminder">Add Reminder</string>
+    <string name="give_reminder_a_name">Give Reminder A Name</string>
+    <string name="location">Location</string>
+    <string name="message">Message</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+</resources>
