@@ -2,6 +2,8 @@ package com.cowsill.myreminders;
 
 import android.content.Intent;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -26,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean mAddOrEdit;  // if True, add.  Else, edit;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,23 +38,7 @@ public class MainActivity extends AppCompatActivity {
         lvReminderList = findViewById(R.id.ReminderList);
         btnAddReminder = findViewById(R.id.btnAddReminder);
 
-        // Create dummy list
         mReminderList = new ArrayList<>();
-        mReminderList.add(
-                new MyReminder(
-                        "Get milk",
-                        "546 Barton Street, East, Hamilton, ON, CA",
-                        "Don't forget to get milk"
-                )
-        );
-        mReminderList.add(
-                new MyReminder(
-                        "Grass",
-                        "126 Balsam Avenue, North",
-                        "Cut the lawn by 6!"
-                )
-        );
-
         // Create adapter and bind list
          arrayAdapter = new ArrayAdapter<MyReminder>(
                 this,
@@ -65,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         lvReminderList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                createEditRemoveDialog(position);
+               launchEditOrRemoveReminderActivity(position);
             }
         });
 
@@ -77,9 +64,16 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void createEditRemoveDialog(int position) {
+    private void launchEditOrRemoveReminderActivity(int position) {
 
-        MyReminder reminder = mReminderList.get(position);
+        mAddOrEdit = false;
+
+        Intent launchActivity = new Intent(this, AddEditReminder.class);
+        launchActivity.putExtra(Constants.ADD_OR_EDIT_EXTRA, mAddOrEdit);
+        launchActivity.putParcelableArrayListExtra(Constants.LIST_EXTRA, mReminderList);
+        launchActivity.putExtra(Constants.INDEX_EXTRA, position);
+
+        startActivityForResult(launchActivity, Constants.START_ACTIVITY_REQUEST_CODE);
 
     }
 
@@ -111,4 +105,5 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
 }

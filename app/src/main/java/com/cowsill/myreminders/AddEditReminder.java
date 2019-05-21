@@ -18,6 +18,7 @@ public class AddEditReminder extends AppCompatActivity {
     private EditText etMessage;
     private Button btnSave;
     private Button btnCancel;
+    private Button btnDelete;
 
     private boolean mAddOrEdit; // Add = true, edit = false
     private ArrayList<MyReminder> mReminderList;
@@ -36,6 +37,7 @@ public class AddEditReminder extends AppCompatActivity {
         etMessage = findViewById(R.id.etMessage);
         btnSave = findViewById(R.id.btnSave);
         btnCancel = findViewById(R.id.btnCancel);
+        btnDelete = findViewById(R.id.btnDeleteReminder);
 
         // Get information from intent
         mAddOrEdit = getIntent().getBooleanExtra(Constants.ADD_OR_EDIT_EXTRA, false);
@@ -61,12 +63,25 @@ public class AddEditReminder extends AppCompatActivity {
             }
         });
 
+        btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteReminder();
+            }
+        });
+
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 returnToMain();
             }
         });
+    }
+
+    private void deleteReminder() {
+
+        mReminderList.remove(index);
+        returnToMain();
     }
 
     private void saveReminder() {
@@ -81,14 +96,19 @@ public class AddEditReminder extends AppCompatActivity {
             String message = etMessage.getText().toString();
 
             MyReminder reminder = new MyReminder(name, location, message);
-            mReminderList.add(reminder);
 
+            if(mAddOrEdit) {
+                mReminderList.add(reminder);
+            } else {
+                mReminderList.remove(index);
+                mReminderList.add(index, reminder);
+            }
             returnToMain();
 
         } else {
             Toast.makeText(
                     this,
-                    "Sorry, you must enter a name, location and message for the reminder.",
+                    "Sorry, there must be a name, location and message for the reminder.",
                     Toast.LENGTH_SHORT
             ).show();
         }
