@@ -1,6 +1,14 @@
 package com.cowsill.myreminders;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.Geocoder;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -95,6 +103,8 @@ public class AddEditReminder extends AppCompatActivity {
             String location = etLocation.getText().toString();
             String message = etMessage.getText().toString();
 
+            // Test with Geocoder to make sure it is a valid address
+
             MyReminder reminder = new MyReminder(name, location, message);
 
             if(mAddOrEdit) {
@@ -121,4 +131,5 @@ public class AddEditReminder extends AppCompatActivity {
         setResult(RESULT_OK, backToMainActivity);
         finish();
     }
+
 }
