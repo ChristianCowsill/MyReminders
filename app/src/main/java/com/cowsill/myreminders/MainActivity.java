@@ -1,7 +1,10 @@
 package com.cowsill.myreminders;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
@@ -33,6 +36,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Check for location priviledges
+        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    Constants.LOCATION_REQUEST_CODE
+            );
+        }
+
+        // Start service and begin getting location updates
+        Intent startLocationMonitoring = new Intent(this, LocationMonitoringService.class);
+        startService(startLocationMonitoring);
 
         // Instantiate UI
         lvReminderList = findViewById(R.id.ReminderList);
