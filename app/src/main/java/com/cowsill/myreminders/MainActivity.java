@@ -3,6 +3,7 @@ package com.cowsill.myreminders;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
@@ -76,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         btnAddReminder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 addReminder();
             }
         });
@@ -120,6 +122,14 @@ public class MainActivity extends AppCompatActivity {
                 arrayAdapter.notifyDataSetChanged();
 
             }
+        }
+    }
+
+    private class GeocoderAsyncTask extends AsyncTask<Void, Void, Void>{
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            return null;
         }
     }
 

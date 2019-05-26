@@ -4,19 +4,24 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.Address;
 import android.location.Geocoder;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class AddEditReminder extends AppCompatActivity {
 
@@ -33,6 +38,8 @@ public class AddEditReminder extends AppCompatActivity {
     private int index;
 
     Intent backToMainActivity;
+
+    private static final String TAG = "AddEditReminder";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +74,7 @@ public class AddEditReminder extends AppCompatActivity {
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 saveReminder();
             }
         });
@@ -103,17 +111,10 @@ public class AddEditReminder extends AppCompatActivity {
             String location = etLocation.getText().toString();
             String message = etMessage.getText().toString();
 
-            // Test with Geocoder to make sure it is a valid address
+            // Use AsyncTask to check validity of address with geocoder/conver to coordinates.  If valid, run this code:
+            GeocoderTask geocoderTask = new GeocoderTask();
+            geocoderTask.execute(name, location, message);
 
-            MyReminder reminder = new MyReminder(name, location, message);
-
-            if(mAddOrEdit) {
-                mReminderList.add(reminder);
-            } else {
-                mReminderList.remove(index);
-                mReminderList.add(index, reminder);
-            }
-            returnToMain();
 
         } else {
             Toast.makeText(
@@ -130,6 +131,53 @@ public class AddEditReminder extends AppCompatActivity {
         backToMainActivity.putParcelableArrayListExtra(Constants.LIST_EXTRA, mReminderList);
         setResult(RESULT_OK, backToMainActivity);
         finish();
+    }
+
+    private class GeocoderTask extends AsyncTask<String, Void, Void>{
+
+        List<Address> addressList;
+        @Override
+        protected Void doInBackground(String... strings) {
+
+            String name = strings[0];
+            String location = strings[1];
+            String message = strings[2];
+
+            Geocoder geocoder = new Geocoder(getApplicationContext());
+            
+            MyReminder reminder;
+            
+            try {
+                addressList = geocoder.getFromLocationName(location, 1);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if(addressList == null || addressList.get(0) == null){
+                Toast.makeText(AddEditReminder.this,
+                        "Sorry - that address is not valid.",
+                        Toast.LENGTH_SHORT).show();
+            } else {
+
+                double latitude = addressList.get(0).getLatitude();
+                double longtitude = addressList.get(0).getLongitude();
+                reminder = new MyReminder(name, location, latitude, longtitude, message);
+
+                if(mAddOrEdit) {
+                    mReminderList.add(reminder);
+                } else {
+                    mReminderList.remove(index);
+                    mReminderList.add(index, reminder);
+                }
+                Log.i(TAG, "doInBackground: " + reminder.getName() + ", " + reminder.getLocation() + ", " +
+                        reminder.getGeofenceLatitude() + ", " + reminder.getGeofenceLongtitude() + ", " +
+                        reminder.getMessage());
+                returnToMain();
+
+
+            }
+            return null;
+        }
     }
 
 }

@@ -8,19 +8,25 @@ public class MyReminder implements Parcelable {
 
     private String mName;
     private String mLocation;
+    private double mGeofenceLatitude;
+    private double mGeofenceLongtitude;
     private String mMessage;
 
     public MyReminder(){}
 
-    public MyReminder(String name, String location, String message){
+    public MyReminder(String name, String location, double geofenceLatitude, double geofenceLongtitude, String message){
         mName = name;
         mLocation = location;
+        mGeofenceLatitude = geofenceLatitude;
+        mGeofenceLongtitude = geofenceLongtitude;
         mMessage = message;
     }
 
     protected MyReminder(Parcel in) {
         mName = in.readString();
         mLocation = in.readString();
+        mGeofenceLatitude = in.readDouble();
+        mGeofenceLongtitude = in.readDouble();
         mMessage = in.readString();
     }
 
@@ -44,20 +50,22 @@ public class MyReminder implements Parcelable {
         this.mName = mName;
     }
 
-    public String getLocation() {
-        return mLocation;
-    }
-
-    public void setLocation(String mLocation) {
-        this.mLocation = mLocation;
-    }
-
     public String getMessage() {
         return mMessage;
     }
 
     public void setMessage(String mMessage) {
         this.mMessage = mMessage;
+    }
+
+    public String getLocation() { return mLocation; }
+
+    public double getGeofenceLatitude() {
+        return mGeofenceLatitude;
+    }
+
+    public double getGeofenceLongtitude() {
+        return mGeofenceLongtitude;
     }
 
     @NonNull
@@ -76,6 +84,8 @@ public class MyReminder implements Parcelable {
 
         dest.writeString(this.mName);
         dest.writeString(this.mLocation);
+        dest.writeDouble(this.mGeofenceLatitude);
+        dest.writeDouble(this.mGeofenceLongtitude);
         dest.writeString(this.mMessage);
     }
 }
