@@ -1,14 +1,18 @@
 package com.cowsill.myreminders;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +22,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingRequest;
+import com.google.android.gms.location.LocationServices;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,9 +44,13 @@ public class AddEditReminder extends AppCompatActivity {
 
     private boolean mAddOrEdit; // Add = true, edit = false
     private ArrayList<MyReminder> mReminderList;
-    private int index;
+    private int mIndex;
 
     Intent backToMainActivity;
+
+    GeofencingClient mGeofencingClient;
+    ArrayList<Geofence> mGeofenceList;
+    PendingIntent mGeofencePendingIntent;
 
     private static final String TAG = "AddEditReminder";
 
@@ -60,9 +73,9 @@ public class AddEditReminder extends AppCompatActivity {
 
         // If we are editing the reminder, get the object from the array and populate
         // the editTexts
-        if(mAddOrEdit == false){
-            index = getIntent().getIntExtra(Constants.INDEX_EXTRA, 0);
-            MyReminder reminder = mReminderList.get(index);
+        if (mAddOrEdit == false) {
+            mIndex = getIntent().getIntExtra(Constants.INDEX_EXTRA, 0);
+            MyReminder reminder = mReminderList.get(mIndex);
 
             etName.setText(reminder.getName());
             etLocation.setText(reminder.getLocation());
@@ -96,16 +109,16 @@ public class AddEditReminder extends AppCompatActivity {
 
     private void deleteReminder() {
 
-        mReminderList.remove(index);
+        mReminderList.remove(mIndex);
         returnToMain();
     }
 
     private void saveReminder() {
 
         // If all the fields are filled in
-        if(!(etName.getText().toString().isEmpty() ||
+        if (!(etName.getText().toString().isEmpty() ||
                 etLocation.getText().toString().isEmpty() ||
-                etMessage.getText().toString().isEmpty())){
+                etMessage.getText().toString().isEmpty())) {
 
             String name = etName.getText().toString();
             String location = etLocation.getText().toString();
@@ -125,7 +138,7 @@ public class AddEditReminder extends AppCompatActivity {
         }
     }
 
-    private void returnToMain(){
+    private void returnToMain() {
 
         backToMainActivity = new Intent();
         backToMainActivity.putParcelableArrayListExtra(Constants.LIST_EXTRA, mReminderList);
@@ -133,9 +146,13 @@ public class AddEditReminder extends AppCompatActivity {
         finish();
     }
 
-    private class GeocoderTask extends AsyncTask<String, Void, Void>{
+    // AsyncTask will check if reminder location is valid and if so, create new reminder and add to list
+    // Finally, it will display result to user via Toast message
+    private class GeocoderTask extends AsyncTask<String, Void, Void> {
 
         List<Address> addressList;
+        boolean mIsValidAddress;
+
         @Override
         protected Void doInBackground(String... strings) {
 
@@ -144,30 +161,28 @@ public class AddEditReminder extends AppCompatActivity {
             String message = strings[2];
 
             Geocoder geocoder = new Geocoder(getApplicationContext());
-            
             MyReminder reminder;
-            
+
             try {
                 addressList = geocoder.getFromLocationName(location, 1);
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            if(addressList == null || addressList.get(0) == null){
-                Toast.makeText(AddEditReminder.this,
-                        "Sorry - that address is not valid.",
-                        Toast.LENGTH_SHORT).show();
+            if (addressList.size() == 0 || addressList == null) {
+                mIsValidAddress = false;
             } else {
 
                 double latitude = addressList.get(0).getLatitude();
                 double longtitude = addressList.get(0).getLongitude();
+                mIsValidAddress = true;
                 reminder = new MyReminder(name, location, latitude, longtitude, message);
 
-                if(mAddOrEdit) {
+                if (mAddOrEdit) {
                     mReminderList.add(reminder);
                 } else {
-                    mReminderList.remove(index);
-                    mReminderList.add(index, reminder);
+                    mReminderList.remove(mIndex);
+                    mReminderList.add(mIndex, reminder);
                 }
                 Log.i(TAG, "doInBackground: " + reminder.getName() + ", " + reminder.getLocation() + ", " +
                         reminder.getGeofenceLatitude() + ", " + reminder.getGeofenceLongtitude() + ", " +
@@ -178,6 +193,94 @@ public class AddEditReminder extends AppCompatActivity {
             }
             return null;
         }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            if (mIsValidAddress) {
+                makeToast("Reminder successfully added/updated");
+                createGeofences();
+            } else {
+                makeToast("Sorry - the address provided is not valid");
+            }
+        }
+
+        private void makeToast(String s) {
+
+            Toast.makeText(
+                    getApplicationContext(),
+                    s,
+                    Toast.LENGTH_SHORT
+            ).show();
+        }
+    }
+
+    private void createGeofences() {
+
+        mGeofencingClient = LocationServices.getGeofencingClient(getApplicationContext());
+
+        mGeofenceList = new ArrayList<>();
+
+        for (MyReminder reminder : mReminderList) {
+            makeGeofence(reminder); // populating mGeofenceList
+        }
+
+        // We check permissions in the launcher activity
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mGeofencingClient.addGeofences(
+                getGeofencingRequest(),
+                getGeofencePendingIntent()
+        );
+
+
+    }
+
+    private void makeGeofence(MyReminder reminder){
+
+        mGeofenceList.add(
+                new Geofence.Builder()
+                .setRequestId(reminder.getName())
+                .setCircularRegion(
+                        reminder.getGeofenceLatitude(),
+                        reminder.getGeofenceLongtitude(),
+                        Constants.GEOFENCE_RADIUS_IN_METERS
+                )
+                .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+                .build()
+
+        );
+    }
+
+    private GeofencingRequest getGeofencingRequest(){
+
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        builder.addGeofences(mGeofenceList);
+        return builder.build();
+    }
+
+    private PendingIntent getGeofencePendingIntent(){
+
+        if(mGeofencePendingIntent != null){
+            return mGeofencePendingIntent;
+        }
+
+        Intent intent = new Intent(getApplicationContext(), GeofenceTransitionIntentService.class);
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList(Constants.LIST_EXTRA, mReminderList);
+        intent.putExtra(Constants.BUNDLE_EXTRA, bundle);
+        mGeofencePendingIntent = PendingIntent.getService(
+                getApplicationContext(),
+                Constants.GEOFENCE_REQUEST_CODE,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        );
+
+        return mGeofencePendingIntent;
     }
 
 }

@@ -20,7 +20,7 @@ public class App extends Application {
     private void createNotificationChannels() {
 
         createNotificationChannel(
-                "Location Services",
+                "MyReminder",
                 "Informs user that Location Services is monitoring device location",
                 NotificationManager.IMPORTANCE_DEFAULT,
                 LOCATION_CHANNEL_ID);
