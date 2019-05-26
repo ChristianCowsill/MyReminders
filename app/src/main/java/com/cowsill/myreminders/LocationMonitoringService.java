@@ -61,8 +61,8 @@ public class LocationMonitoringService extends Service {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, App.LOCATION_CHANNEL_ID)
         .setSmallIcon(R.drawable.ic_location_and_geofence)
-                .setContentTitle("MyReminders")
-                .setContentText("MyReminders app is monitoring your location.")
+                .setContentTitle(getString(R.string.my_reminders))
+                .setContentText(getString(R.string.location_notification))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
         return builder.build();

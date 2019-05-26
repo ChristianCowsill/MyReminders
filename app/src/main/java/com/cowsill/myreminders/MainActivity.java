@@ -1,7 +1,9 @@
 package com.cowsill.myreminders;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
@@ -17,6 +19,10 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,7 +62,9 @@ public class MainActivity extends AppCompatActivity {
         lvReminderList = findViewById(R.id.ReminderList);
         btnAddReminder = findViewById(R.id.btnAddReminder);
 
-        mReminderList = new ArrayList<>();
+        // Get list of existing reminders from SharedPreferences
+        loadData();
+
         // Create adapter and bind list
          arrayAdapter = new ArrayAdapter<MyReminder>(
                 this,
@@ -125,4 +133,40 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void saveData(){
+
+        SharedPreferences sharedPreferences = getSharedPreferences(
+                Constants.SHARED_PREFERENCES_NAME,
+                Context.MODE_PRIVATE
+        );
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(mReminderList);
+        editor.putString(Constants.JSON_LIST_KEY, json);
+        editor.apply();
+    }
+
+    private void loadData(){
+
+        SharedPreferences sharedPreferences = getSharedPreferences(
+                Constants.SHARED_PREFERENCES_NAME,
+                Context.MODE_PRIVATE
+        );
+        Gson gson = new Gson();
+        String json = sharedPreferences.getString(Constants.JSON_LIST_KEY, null);
+        Type type = new TypeToken<ArrayList<MyReminder>>() {}.getType();
+        mReminderList = gson.fromJson(json, type);
+
+        if(mReminderList == null){
+            mReminderList = new ArrayList<>();
+        }
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        saveData();
+    }
 }

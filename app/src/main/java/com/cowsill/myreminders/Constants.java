@@ -12,4 +12,6 @@ public class Constants {
     public static final float GEOFENCE_RADIUS_IN_METERS = 100;
     public static final int GEOFENCE_REQUEST_CODE = 4;
     public static final int GEOFENCE_TRANSITION_NOTIFICATION_ID = 5;
+    public static final String SHARED_PREFERENCES_NAME = "shared_preferences";
+    public static final String JSON_LIST_KEY = "json_list";
 }

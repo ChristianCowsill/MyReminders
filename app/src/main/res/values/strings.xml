@@ -6,4 +6,7 @@
     <string name="message">Message</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+    <string name="my_reminder">MyReminder!</string>
+    <string name="my_reminders">MyReminders</string>
+    <string name="location_notification">MyReminders app is monitoring your location.</string>
 </resources>

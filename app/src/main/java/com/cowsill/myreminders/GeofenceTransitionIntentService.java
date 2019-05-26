@@ -28,7 +28,6 @@ public class GeofenceTransitionIntentService extends IntentService {
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
 
-        Log.i(TAG, "onHandleIntent: ");
         // Get reminderList from intent;  We need this to send custom notification message
         Bundle bundle = intent.getBundleExtra(Constants.BUNDLE_EXTRA);
         mReminderList = bundle.getParcelableArrayList(Constants.LIST_EXTRA);
@@ -47,6 +46,7 @@ public class GeofenceTransitionIntentService extends IntentService {
         if(geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER){
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
 
+            // If so, link geofence to reminder using for loops and send user their custom notification
             for(Geofence gf : triggeringGeofences){
                 for(MyReminder reminder : mReminderList){
                     if(gf.getRequestId().equals(reminder.getName())){
@@ -55,7 +55,6 @@ public class GeofenceTransitionIntentService extends IntentService {
                                 Constants.GEOFENCE_TRANSITION_NOTIFICATION_ID,
                                 createNotification(reminder.getMessage())
                         );
-                        Log.i(TAG, "onHandleIntent: You entered geofence" );
                     }
                 }
             }
@@ -67,7 +66,7 @@ public class GeofenceTransitionIntentService extends IntentService {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, App.GEOFENCE_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_location_and_geofence)
-                .setContentTitle("MyReminder!")
+                .setContentTitle(getString(R.string.my_reminder))
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH);
 
