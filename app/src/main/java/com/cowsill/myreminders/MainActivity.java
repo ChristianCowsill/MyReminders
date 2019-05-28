@@ -65,6 +65,9 @@ public class MainActivity extends AppCompatActivity {
         // Get list of existing reminders from SharedPreferences
         loadData();
 
+        GeofenceManager geofenceManager = new GeofenceManager(this, mReminderList);
+        geofenceManager.createGeofences();
+
         // Create adapter and bind list
          arrayAdapter = new ArrayAdapter<MyReminder>(
                 this,

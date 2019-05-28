@@ -200,7 +200,8 @@ public class AddEditReminder extends AppCompatActivity {
 
             if (mIsValidAddress) {
                 makeToast("Reminder successfully added/updated");
-                createGeofences();
+                GeofenceManager geofenceManager = new GeofenceManager(getApplicationContext(), mReminderList);
+                geofenceManager.createGeofences();
             } else {
                 makeToast("Sorry - the address provided is not valid");
             }
