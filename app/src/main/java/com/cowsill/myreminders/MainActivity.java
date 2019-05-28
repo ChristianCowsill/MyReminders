@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Check for location priviledges
+        // Check for location privileges
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(
@@ -65,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
         // Get list of existing reminders from SharedPreferences
         loadData();
 
+        // Create GeofenceManager;  if there are any items in the reminder list, they will be
+        // initialized as geofences
         GeofenceManager geofenceManager = new GeofenceManager(this, mReminderList);
         geofenceManager.createGeofences();
 

@@ -33,7 +33,8 @@ public class GeofenceManager {
 
         mGeofencingClient = LocationServices.getGeofencingClient(mContext);
 
-        // When the app is first created, the list will be initialized but with a size of 0
+        // When the app is first created, the list will be initialized but with a size of 0.  Therefore,
+        // we must exit or get a runtime error because there are no reminders to feed to makeGeofence()
         if(mReminderList.size() == 0){
             return;
         }
